@@ -71,7 +71,11 @@ async def handle_document(message: Message, bot: Bot):
             await msg.edit_text("❌ Не удалось извлечь текст из файла.")
             return
         
-        result = process_and_save_document(text_content, doc_id=str(message.document.file_id))
+        result = process_and_save_document(
+            text_content, 
+            doc_id=str(message.document.file_id),
+            user_id=message.from_user.id
+        )
         await msg.edit_text(f"✅ {result}")
         
     except Exception as e:
@@ -81,7 +85,7 @@ async def handle_document(message: Message, bot: Bot):
 async def handle_text(message: Message):
     question = message.text
     msg = await message.answer("Ищу ответ в архивах...")
-    answer = ask_mistral(question)
+    answer = ask_mistral(question, user_id=message.from_user.id)
     
     clean_answer = answer.replace('**', '').replace('*', '')
     

@@ -15,33 +15,42 @@ collection = chroma_client.get_or_create_collection(name="student_notes")
 
 mistral_client = Mistral(api_key=MISTRAL_API_KEY)
 
-def process_and_save_document(text, doc_id="doc_1"):
+
+def process_and_save_document(text, doc_id, user_id):
     paragraphs = [p.strip() for p in text.split('\n\n') if len(p.strip()) > 50]
     if not paragraphs:
         return "Текст слишком короткий."
 
     embeddings = embedding_model.encode(paragraphs).tolist()
     ids = [f"{doc_id}_chunk_{i}" for i in range(len(paragraphs))]
+    
+    metadatas = [{"user_id": user_id} for _ in range(len(paragraphs))]
 
     collection.add(
         embeddings=embeddings,
         documents=paragraphs,
-        ids=ids
+        ids=ids,
+        metadatas=metadatas
     )
-    return f"Текст разбит на {len(paragraphs)} смысловых блоков и сохранен."
+    return f"Текст разбит на {len(paragraphs)} смысловых блоков и сохранен в твой личный архив."
 
-def ask_mistral(question):
+def ask_mistral(question, user_id):
     question_embedding = embedding_model.encode([question]).tolist()
-    results = collection.query(query_embeddings=question_embedding, n_results=3)
+    
+    results = collection.query(
+        query_embeddings=question_embedding, 
+        n_results=3,
+        where={"user_id": user_id}
+    )
 
     found_chunks = results['documents'][0]
     if not found_chunks:
-        return "В документах нет ответа на этот вопрос."
+        return "В твоем документе нет ответа на этот вопрос. Сначала загрузи нужный документ."
 
     context = "\n\n".join(found_chunks)
     
     prompt = f"""Ответь на вопрос, опираясь ТОЛЬКО на контекст. Если ответа нет, скажи об этом.
-    Отвечай простым текстом без форматирования Markdown (не используй звездочки и решетки).
+    Отвечай простым текстом без форматирования Markdown. не используй звездочки и решетки.
     Контекст: {context}
     Вопрос: {question}"""
 
