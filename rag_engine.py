@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import chromadb
 from sentence_transformers import SentenceTransformer
-from mistralai import Mistral
+from mistralai.client import Mistral
 
 load_dotenv()
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")

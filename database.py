@@ -17,6 +17,7 @@ class UserQuery(Base):
 
 def init_db():
     Base.metadata.create_all(engine)
+    print('бд создана')
 
 def save_query(user_id, question, answer):
     session = Session()
