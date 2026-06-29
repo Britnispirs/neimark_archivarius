@@ -62,3 +62,11 @@ def ask_mistral(question, user_id):
         return chat_response.choices[0].message.content
     except Exception as e:
         return f"Ошибка API: {e}"
+
+
+def clear_user_data(user_id):
+    try:
+        collection.delete(where={"user_id": user_id})
+        return "Твой личный архив успешно очищен! Можно загружать новые файлы."
+    except Exception as e:
+        return f"Ошибка при очистке: {e}"

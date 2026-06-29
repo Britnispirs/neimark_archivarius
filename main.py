@@ -42,7 +42,7 @@ def extract_text_from_docx(file_stream) -> str:
 async def cmd_start(message: Message):
     text = (
         "Привет! Я твой AI-Архивариус.\n\n"
-        "Скинь мне любой конспект или статью в формате <b>.txt</b>, "
+        "Скинь мне любой конспект или статью в формате <b></b>, "
         "а затем задавай вопросы. Я найду нужную информацию и отвечу строго по тексту."
     )
     await message.answer(text, parse_mode="HTML")
@@ -86,7 +86,6 @@ async def handle_text(message: Message):
     question = message.text
     msg = await message.answer("Ищу ответ в архивах...")
     answer = ask_mistral(question, user_id=message.from_user.id)
-    
     clean_answer = answer.replace('**', '').replace('*', '')
     
     save_query(
@@ -96,6 +95,14 @@ async def handle_text(message: Message):
     )
     
     await msg.edit_text(clean_answer)
+
+@dp.message(Command("clear"))
+async def handle_clear(message: Message):
+    from rag_engine import clear_user_data
+    
+    result = clear_user_data(message.from_user.id)
+    await message.answer(result)
+    
 
 async def main():
     init_db() 
