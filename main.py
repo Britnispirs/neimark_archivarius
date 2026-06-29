@@ -2,7 +2,7 @@ import os
 import asyncio
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, F
-from aiogram.types import Message
+from aiogram.types import Message, BotCommand
 from aiogram.filters import Command
 from database import init_db, save_query
 from rag_engine import process_and_save_document, ask_mistral
@@ -42,10 +42,17 @@ def extract_text_from_docx(file_stream) -> str:
 async def cmd_start(message: Message):
     text = (
         "Привет! Я твой AI-Архивариус.\n\n"
-        "Скинь мне любой конспект или статью в формате <b></b>, "
+        "Скинь мне любой конспект или статью в формате <b>txt, pdf, docx</b>, "
         "а затем задавай вопросы. Я найду нужную информацию и отвечу строго по тексту."
     )
     await message.answer(text, parse_mode="HTML")
+
+@dp.message(Command("clear"))
+async def handle_clear(message: Message):
+    from rag_engine import clear_user_data
+    
+    result = clear_user_data(message.from_user.id)
+    await message.answer(result)
 
 @dp.message(F.document)
 @dp.message(F.document)
@@ -96,17 +103,13 @@ async def handle_text(message: Message):
     
     await msg.edit_text(clean_answer)
 
-@dp.message(Command("clear"))
-async def handle_clear(message: Message):
-    from rag_engine import clear_user_data
-    
-    result = clear_user_data(message.from_user.id)
-    await message.answer(result)
-    
-
 async def main():
-    init_db() 
     print("Бот успешно запущен! Нажми Ctrl+C для остановки.")
+    commands = [
+        BotCommand(command="start", description="Запустить бота и узнать правила"),
+        BotCommand(command="clear", description="Очистить мой архив документов")
+    ]
+    await bot.set_my_commands(commands)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
