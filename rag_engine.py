@@ -17,22 +17,32 @@ mistral_client = Mistral(api_key=MISTRAL_API_KEY)
 
 
 def process_and_save_document(text, doc_id, user_id):
-    paragraphs = [p.strip() for p in text.split('\n\n') if len(p.strip()) > 50]
-    if not paragraphs:
-        return "Текст слишком короткий."
-
-    embeddings = embedding_model.encode(paragraphs).tolist()
-    ids = [f"{doc_id}_chunk_{i}" for i in range(len(paragraphs))]
+    raw_paragraphs = [p.strip() for p in text.split('\n\n') if len(p.strip()) > 50]
     
-    metadatas = [{"user_id": user_id} for _ in range(len(paragraphs))]
+    final_chunks = []
+    chunk_limit = 1500
+    
+    for p in raw_paragraphs:
+        if len(p) <= chunk_limit:
+            final_chunks.append(p)
+        else:
+            for i in range(0, len(p), chunk_limit):
+                final_chunks.append(p[i:i + chunk_limit])
+
+    if not final_chunks:
+        return "Не удалось извлечь текст."
+
+    embeddings = embedding_model.encode(final_chunks).tolist()
+    ids = [f"{doc_id}_chunk_{i}" for i in range(len(final_chunks))]
+    metadatas = [{"user_id": user_id} for _ in range(len(final_chunks))]
 
     collection.add(
         embeddings=embeddings,
-        documents=paragraphs,
+        documents=final_chunks,
         ids=ids,
         metadatas=metadatas
     )
-    return f"Текст разбит на {len(paragraphs)} смысловых блоков и сохранен в твой личный архив."
+    return f"Текст разбит на {len(final_chunks)} блоков и сохранен."
 
 def ask_mistral(question, user_id):
     question_embedding = embedding_model.encode([question]).tolist()
