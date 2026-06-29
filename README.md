@@ -1,7 +1,8 @@
 # Telegram-бот «AI-Archivarius»
 
 AI-Archivarius — это умный RAG-ассистент (Retrieval-Augmented Generation, который превращает любые текстовые лекции и учебники в интерактивную базу знаний.
-usename telegram: @ai_archivarius_bot
+
+usename telegram: `@ai_archivarius_bot`
 ## Какую проблему решает и для кого
 
 Для кого: Школьники выпускных классов, студенты и все, кто работает с объемными документами.
